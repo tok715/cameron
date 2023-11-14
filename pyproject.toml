@@ -6,8 +6,18 @@ authors = ["GUO YANKE <hi@guoyk.xyz>"]
 license = "MIT"
 readme = "README.md"
 
+packages = [
+    { include = 'cameron' }
+]
+
+[tool.poetry.scripts]
+tok715-cameron = 'cameron:cli'
+
 [tool.poetry.dependencies]
 python = "^3.10"
+starlette = "^0.32.0.post1"
+uvicorn = "^0.24.0.post1"
+click = "^8.1.7"
 
 
 [build-system]
