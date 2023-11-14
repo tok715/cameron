@@ -1,6 +1,6 @@
-# cameron
+# TOK715/Cameron
 
-monolith application for tok715/cameron artificial intelligence
+Monolith Application for TOK715/Cameron Artificial Intelligence
 
 ## Credits
 
