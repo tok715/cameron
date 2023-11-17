@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "lib": [
+      "es2018",
+      "dom",
+    ],
+    "types": [
+      "dom-webcodecs",
+      "moment",
+      "jquery",
+      "audiodata2pcm",
+      "dom-mediacapture-transform",
+    ],
+    "outDir": "./dist",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "cameron-static",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/dom-mediacapture-transform": "^0.1.9",
+    "@types/dom-webcodecs": "^0.1.10",
+    "@types/jquery": "^3.5.27",
+    "audiodata2pcm": "^0.1.1",
+    "moment": "^2.29.4",
+    "typescript": "^5.2.2"
+  }
+}

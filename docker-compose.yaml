@@ -1,0 +1,30 @@
+version: "3.8"
+
+networks:
+  cameron:
+    name: cameron
+
+services:
+  redis:
+    networks:
+      - cameron
+    container_name: cameron_redis
+    hostname: redis
+    image: redis:7
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - ./data/redis:/data
+
+  mysql:
+    networks:
+      - cameron
+    container_name: cameron_mysql
+    hostname: mysql
+    image: mysql:8
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
