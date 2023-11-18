@@ -1,6 +1,12 @@
 enum WebSocketFrameKind {
     AudioInput = 0x01,
-    AudioTranscribeResult = 0x02
+    AudioTranscribeResult = 0x02,
+    AudioSynthesizeResult = 0x03,
+    ModelGenerationResult = 0x04,
+}
+
+async function wait(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 function output(color: string, text: string) {
@@ -32,7 +38,63 @@ function downloadBlob(name: string, blob: Blob) {
 const state: {
     ws?: WebSocket;
     audioStream?: MediaStream;
+    audioContext?: AudioContext;
 } = {};
+
+class AudioSynthesizeQueue {
+    queue: Uint8Array[] = []
+
+    triggered = false
+
+    audioContextProvider: () => AudioContext | undefined
+
+    constructor(audioContextProvider: () => AudioContext | undefined) {
+        this.audioContextProvider = audioContextProvider
+    }
+
+    async trigger() {
+        if (this.triggered) {
+            return
+        }
+        this.triggered = true
+        try {
+            while (true) {
+                const data = this.queue.shift()
+                if (!data) {
+                    break
+                }
+                const ctx = this.audioContextProvider()
+                if (!ctx) {
+                    this.queue = [];
+                    return
+                }
+                const buf = await ctx.decodeAudioData(data.buffer.slice(data.byteOffset, data.byteLength))
+
+                const src = ctx.createBufferSource()
+                src.buffer = buf
+                src.connect(ctx.destination)
+                src.start()
+
+                await wait(buf.duration * 1000)
+            }
+        } catch (e) {
+            error(`audio queue error: ${e}`)
+            this.queue = []
+        } finally {
+            this.triggered = false
+        }
+    }
+
+    async add(data: Uint8Array) {
+        this.queue.push(data)
+        this.trigger().then(() => {
+        })
+    }
+
+}
+
+const audioQueue = new AudioSynthesizeQueue(() => state.audioContext)
+
 
 async function setupWebSocket() {
     const ws = new WebSocket(`ws://${location.host}/ws`)
@@ -61,12 +123,24 @@ async function setupWebSocket() {
         const data = new Uint8Array(e.data);
         switch (data[0]) {
             case WebSocketFrameKind.AudioTranscribeResult:
+                await handleAudioTranscribe(data.subarray(1))
+                break
+            case WebSocketFrameKind.AudioSynthesizeResult:
+                await audioQueue.add(data.subarray(1))
+                break
+            case WebSocketFrameKind.ModelGenerationResult:
                 const result = new TextDecoder().decode(data.subarray(1))
-                info(`transcribe result: ${result}`)
+                info(`model generation result: ${result}`)
                 break
         }
     }
 }
+
+async function handleAudioTranscribe(data: Uint8Array) {
+    const result = new TextDecoder().decode(data)
+    info(`transcribe result: ${result}`)
+}
+
 
 async function setupAudioStream() {
     if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
@@ -117,8 +191,22 @@ async function setupAudioProcessor() {
     });
 }
 
+async function setupAudioContext() {
+    state.audioContext = new AudioContext()
+    info('audio context created')
+}
+
+async function setupSynthesizeButton() {
+    $('#btn-start').click(async function () {
+        $('#btn-start').attr('disabled', 'disabled')
+
+        await setupAudioContext()
+        await setupWebSocket();
+        await setupAudioStream();
+        await setupAudioProcessor();
+    })
+}
+
 $(async function () {
-    await setupWebSocket();
-    await setupAudioStream();
-    await setupAudioProcessor();
+    await setupSynthesizeButton();
 })

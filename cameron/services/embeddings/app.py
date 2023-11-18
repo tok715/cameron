@@ -49,7 +49,7 @@ async def lifespan(app):
 
 app = Starlette(
     routes=[
-        Route('/embeddings/encode', endpoint=route_invoke, methods=['POST', 'GET'])
+        Route('/embeddings/encode', endpoint=route_invoke, methods=['POST'])
     ],
     lifespan=lifespan
 )

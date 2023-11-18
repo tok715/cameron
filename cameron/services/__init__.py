@@ -1,2 +1,7 @@
 from .bootstrap import services_running
-from .connect import connect_service_websocket
+from .client import (
+    invoke_service,
+    connect_service_websocket,
+    ServiceWebSocketClientDelegate,
+    ServiceWebSocketClient
+)

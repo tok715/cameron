@@ -86,7 +86,11 @@ class SynthesizeEndpoint(WebSocketEndpoint):
         await super().on_receive(websocket, data)
 
         async for wav_data in websocket.state.service.inference_stream(data):
-            await websocket.send_bytes(wav_data)
+            try:
+                await websocket.send_bytes(wav_data)
+            except Exception as e:
+                print("synthesize: websocket closed", e)
+                break
 
 
 @contextlib.asynccontextmanager
